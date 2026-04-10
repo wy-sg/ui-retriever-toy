@@ -1,35 +1,38 @@
-// UIRetriever.Toy.Mcp — Public Lite Executor MCP Host
+// UIRetriever.Toy.Mcp — Unified MCP Server (Mark Authoring + Bark Execution)
 //
-// Role: Executes simple barks against simple marks from the marks file.
-// Transport: JSON-RPC 2.0 over stdio.
+// Mark tools:
+//   mark_element    — pick + tune + save a UI element as a named mark
+//   list_marks      — list all saved marks
+//   validate_mark   — resolve a mark and report success/failure
+//   delete_mark     — delete a saved mark
 //
-// Supported bark tools:
+// Bark tools:
 //   invoke              — invoke/activate a marked element
 //   set_text            — set text on a marked element
 //   click_element       — click a marked element
 //   right_click_element — right-click a marked element
 //
-// This host does NOT support errands, tricks, or procedures.
-// It is a simple, public, playground-level executor.
+// Utility tools:
+//   screenshot      — capture the entire screen and return as PNG image
+//
+// Transport: MCP Streamable HTTP on port 8000
 
-Console.Error.WriteLine("UIRetriever.Toy.Mcp starting...");
-Console.Error.WriteLine("Toy executor MCP host ready. Waiting for JSON-RPC messages...");
+using ModelContextProtocol.AspNetCore;
+using UIRetriever.Toy.Mcp.Tools;
 
-// TODO: Wire up DI container
-// TODO: Load marks from marks file
-// TODO: Register bark tools (invoke, set_text, click_element, right_click_element)
-// TODO: Start JSON-RPC transport loop
+var builder = WebApplication.CreateBuilder(args);
 
-using var cts = new CancellationTokenSource();
-Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+builder.WebHost.UseUrls("http://localhost:8000");
 
-try
-{
-    await Task.Delay(Timeout.Infinite, cts.Token);
-}
-catch (OperationCanceledException)
-{
-    // Clean shutdown
-}
+builder.Services
+    .AddMcpServer()
+    .WithHttpTransport()
+    .WithTools<MarkTools>()
+    .WithTools<BarkTools>()
+    .WithTools<ScreenshotTools>();
 
-Console.Error.WriteLine("UIRetriever.Toy.Mcp stopped.");
+var app = builder.Build();
+
+app.MapMcp();
+
+app.Run();

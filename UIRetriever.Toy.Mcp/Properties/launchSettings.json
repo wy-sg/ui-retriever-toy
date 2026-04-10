@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UIRetriever.Toy.Mcp": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:8000"
+    }
+  }
+}
