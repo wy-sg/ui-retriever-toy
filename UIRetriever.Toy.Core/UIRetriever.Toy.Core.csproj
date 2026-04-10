@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UIRetriever.Contracts\UIRetriever.Contracts.csproj" />
+    <ProjectReference Include="..\UIRetriever.Schema\UIRetriever.Schema.csproj" />
+  </ItemGroup>
+
+</Project>

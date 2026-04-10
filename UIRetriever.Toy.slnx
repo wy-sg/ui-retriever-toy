@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="UIRetriever.Contracts/UIRetriever.Contracts.csproj" />
+    <Project Path="UIRetriever.Schema/UIRetriever.Schema.csproj" />
+    <Project Path="UIRetriever.Toy.Core/UIRetriever.Toy.Core.csproj" />
+  </Folder>
+  <Folder Name="/servers/">
+    <Project Path="UIRetriever.Toy.Mcp/UIRetriever.Toy.Mcp.csproj" />
+  </Folder>
+</Solution>
