@@ -4,7 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
-using Microsoft.Extensions.AI;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
 namespace UIRetriever.Toy.Mcp.Tools;
@@ -15,7 +15,7 @@ public sealed class ScreenshotTools
     [McpServerTool(Name = "screenshot")]
     [Description("Take a screenshot of the entire primary screen and return it as a JPEG image for LLM analysis. " +
                  "The image is scaled down to keep the payload small.")]
-    public static IList<AIContent> TakeScreenshot(
+    public static IList<ContentBlock> TakeScreenshot(
         [Description("Maximum width in pixels (default 1280). Height is scaled proportionally.")] int maxWidth = 1280,
         [Description("JPEG quality 1-100 (default 70). Lower = smaller file.")] int quality = 70)
     {
@@ -59,7 +59,7 @@ public sealed class ScreenshotTools
             };
             output.Save(ms, encoder, encoderParams);
 
-            return [new DataContent(ms.ToArray(), "image/jpeg")];
+            return [ImageContentBlock.FromBytes(ms.ToArray(), "image/jpeg")];
         }
         finally
         {
