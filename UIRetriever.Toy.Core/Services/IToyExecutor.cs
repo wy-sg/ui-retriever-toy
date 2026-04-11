@@ -10,8 +10,10 @@ namespace UIRetriever.Toy.Core.Services;
 /// </summary>
 public interface IToyExecutor
 {
+    Task<BarkResult> GetTextAsync(GetTextRequest request, CancellationToken ct = default);
     Task<BarkResult> InvokeAsync(InvokeRequest request, CancellationToken ct = default);
     Task<BarkResult> SetTextAsync(SetTextRequest request, CancellationToken ct = default);
     Task<BarkResult> ClickElementAsync(ClickElementRequest request, CancellationToken ct = default);
     Task<BarkResult> RightClickElementAsync(RightClickElementRequest request, CancellationToken ct = default);
+    Task<BarkResult> SetFocusAsync(SetFocusRequest request, CancellationToken ct = default);
 }

@@ -14,6 +14,19 @@ public sealed class BarkTools
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "UIRetriever", "marks.json");
 
+    [McpServerTool(Name = "get_text")]
+    [Description("Get the text or value of a marked UI element.")]
+    public static string GetText(
+        [Description("Name of the mark identifying the target element")] string markName)
+    {
+        var (handle, error) = ResolveMark(markName);
+        if (handle is null) return error!;
+        var text = handle.GetText();
+        return text is not null
+            ? $"Text of '{markName}': {text}"
+            : $"Error: could not read text for '{markName}'.";
+    }
+
     [McpServerTool(Name = "invoke")]
     [Description("Invoke (activate/press) a marked UI element.")]
     public static string Invoke(
@@ -69,6 +82,18 @@ public sealed class BarkTools
         SetCursorPos(cx, cy);
         mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, cx, cy, 0, 0);
         return $"Right-clicked '{markName}'.";
+    }
+
+    [McpServerTool(Name = "set_focus")]
+    [Description("Set keyboard focus to a marked UI element.")]
+    public static string SetFocus(
+        [Description("Name of the mark identifying the target element")] string markName)
+    {
+        var (handle, error) = ResolveMark(markName);
+        if (handle is null) return error!;
+        return handle.SetFocus()
+            ? $"Set focus on '{markName}'."
+            : $"Error: set_focus failed for '{markName}'.";
     }
 
     private static (UIRetriever.Core.Services.IElementHandle? Handle, string? Error) ResolveMark(string markName)

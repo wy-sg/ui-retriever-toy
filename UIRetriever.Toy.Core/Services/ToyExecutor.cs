@@ -9,6 +9,9 @@ namespace UIRetriever.Toy.Core.Services;
 /// </summary>
 public sealed class ToyExecutor : IToyExecutor
 {
+    public Task<BarkResult> GetTextAsync(GetTextRequest request, CancellationToken ct = default)
+        => Task.FromResult(BarkResult.Fail("Not implemented", "NotImplemented"));
+
     public Task<BarkResult> InvokeAsync(InvokeRequest request, CancellationToken ct = default)
         => Task.FromResult(BarkResult.Fail("Not implemented", "NotImplemented"));
 
@@ -19,5 +22,8 @@ public sealed class ToyExecutor : IToyExecutor
         => Task.FromResult(BarkResult.Fail("Not implemented", "NotImplemented"));
 
     public Task<BarkResult> RightClickElementAsync(RightClickElementRequest request, CancellationToken ct = default)
+        => Task.FromResult(BarkResult.Fail("Not implemented", "NotImplemented"));
+
+    public Task<BarkResult> SetFocusAsync(SetFocusRequest request, CancellationToken ct = default)
         => Task.FromResult(BarkResult.Fail("Not implemented", "NotImplemented"));
 }
