@@ -8,7 +8,7 @@ using ModelContextProtocol.Server;
 
 namespace UIRetriever.Toy.Mcp.Tools;
 
-[McpServerToolType]
+// [McpServerToolType]
 public sealed class ScreenshotTools
 {
     private static readonly string ScreenshotFolder = Path.Combine(
