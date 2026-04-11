@@ -5,19 +5,37 @@
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.0.9</Version>
+    <Version>1.0.10</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\UIRetriever.Contracts\UIRetriever.Contracts.csproj" />
     <ProjectReference Include="..\UIRetriever.Schema\UIRetriever.Schema.csproj" />
     <ProjectReference Include="..\UIRetriever.Toy.Core\UIRetriever.Toy.Core.csproj" />
-    <ProjectReference Include="..\..\ui-retriever\UIRetriever.Core\UIRetriever.Core.csproj" />
-    <ProjectReference Include="..\..\ui-retriever\UIRetriever.Windows\UIRetriever.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UIRetriever.Bridge">
+      <HintPath>..\lib\UIRetriever.Bridge.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Runtime dependencies for Bridge (only needed in unmerged mode) -->
+    <Content Include="..\lib\UIRetriever.Core.dll" Condition="Exists('..\lib\UIRetriever.Core.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>UIRetriever.Core.dll</Link>
+    </Content>
+    <Content Include="..\lib\UIRetriever.Windows.dll" Condition="Exists('..\lib\UIRetriever.Windows.dll')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>UIRetriever.Windows.dll</Link>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.2.0" />
+    <PackageReference Include="FlaUI.Core" Version="5.0.0" />
+    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

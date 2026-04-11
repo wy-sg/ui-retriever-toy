@@ -2,8 +2,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using ModelContextProtocol.Server;
-using UIRetriever.Core.Marks;
-using UIRetriever.Windows;
+using UIRetriever.Bridge;
 
 namespace UIRetriever.Toy.Mcp.Tools;
 
@@ -96,17 +95,15 @@ public sealed class BarkTools
             : $"Error: set_focus failed for '{markName}'.";
     }
 
-    private static (UIRetriever.Core.Services.IElementHandle? Handle, string? Error) ResolveMark(string markName)
+    private static (BridgeElementHandle? Handle, string? Error) ResolveMark(string markName)
     {
-        var fileService = new MarkFileService();
-        var marks = fileService.Load(MarksFilePath);
+        var marks = UIRetrieverEngine.LoadMarks(MarksFilePath);
         var mark = marks.FirstOrDefault(m => string.Equals(m.Name, markName, StringComparison.OrdinalIgnoreCase));
 
         if (mark is null)
             return (null, $"Error: no mark named '{markName}' found.");
 
-        var resolver = new MarkResolver();
-        var (handle, trace) = resolver.ResolveToHandle(mark);
+        var (handle, trace) = UIRetrieverEngine.ResolveToHandle(mark);
 
         if (handle is null || !handle.IsValid)
             return (null, $"Error: could not resolve '{markName}'.\nTrace:\n{trace}");

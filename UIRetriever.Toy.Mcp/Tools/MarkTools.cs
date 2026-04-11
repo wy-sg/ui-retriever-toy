@@ -2,9 +2,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using ModelContextProtocol.Server;
-using UIRetriever.Core.Marks;
-using UIRetriever.Core.Models;
-using UIRetriever.Windows;
+using UIRetriever.Bridge;
 
 namespace UIRetriever.Toy.Mcp.Tools;
 
@@ -32,8 +30,7 @@ public sealed class MarkTools
         if (x.HasValue != y.HasValue)
             return "Error: both x and y must be provided together.";
 
-        var fileService = new MarkFileService();
-        var marks = fileService.Load(MarksFilePath);
+        var marks = UIRetrieverEngine.LoadMarks(MarksFilePath);
 
         if (marks.Any(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase)))
             return $"Error: a mark named '{name}' already exists.";
@@ -47,8 +44,7 @@ public sealed class MarkTools
             await Task.Delay(delay);
         }
 
-        var picker = new MarkPickerService();
-        var pickResult = picker.PickUnderCursor();
+        var pickResult = UIRetrieverEngine.PickUnderCursor();
 
         if (!pickResult.Success || pickResult.Mark is null)
             return $"Error: pick failed — {pickResult.Message}";
@@ -57,16 +53,14 @@ public sealed class MarkTools
         mark.Name = name;
         mark.ProcessHint = pickResult.ProcessName ?? string.Empty;
 
-        var tuner = new MarkTuner();
-        var tuneResult = tuner.Tune(mark);
+        var tuneResult = UIRetrieverEngine.TuneMark(mark);
 
         if (!tuneResult.Success)
         {
             return $"Error: tuning failed at step [{tuneResult.FailedNodeIndex}].\n{tuneResult.Summary}";
         }
 
-        var resolver = new MarkResolver();
-        var (handle, _) = resolver.ResolveToHandle(mark);
+        var (handle, _) = UIRetrieverEngine.ResolveToHandle(mark);
 
         if (handle is null || !handle.IsValid)
         {
@@ -85,7 +79,7 @@ public sealed class MarkTools
         }
 
         marks.Add(mark);
-        fileService.Save(marks, MarksFilePath);
+        UIRetrieverEngine.SaveMarks(marks, MarksFilePath);
 
         var excluded = tuneResult.Steps.Where(s => !s.Success).ToList();
         var summary = $"Marked '{name}' — {mark.Chain.Count} nodes, "
@@ -102,8 +96,7 @@ public sealed class MarkTools
     [Description("List all saved marks from the marks store.")]
     public static string ListMarks()
     {
-        var fileService = new MarkFileService();
-        var marks = fileService.Load(MarksFilePath);
+        var marks = UIRetrieverEngine.LoadMarks(MarksFilePath);
 
         if (marks.Count == 0)
             return "No marks saved.";
@@ -119,15 +112,13 @@ public sealed class MarkTools
     public static string ValidateMark(
         [Description("Name of the mark to validate")] string name)
     {
-        var fileService = new MarkFileService();
-        var marks = fileService.Load(MarksFilePath);
+        var marks = UIRetrieverEngine.LoadMarks(MarksFilePath);
         var mark = marks.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
 
         if (mark is null)
             return $"Error: no mark named '{name}' found.";
 
-        var resolver = new MarkResolver();
-        var (handle, trace) = resolver.ResolveToHandle(mark);
+        var (handle, trace) = UIRetrieverEngine.ResolveToHandle(mark);
 
         if (handle is null || !handle.IsValid)
             return $"Failed: could not resolve '{name}'.\nTrace:\n{trace}";
@@ -142,14 +133,13 @@ public sealed class MarkTools
     public static string DeleteMark(
         [Description("Name of the mark to delete")] string name)
     {
-        var fileService = new MarkFileService();
-        var marks = fileService.Load(MarksFilePath);
+        var marks = UIRetrieverEngine.LoadMarks(MarksFilePath);
         var removed = marks.RemoveAll(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
 
         if (removed == 0)
             return $"Error: no mark named '{name}' found.";
 
-        fileService.Save(marks, MarksFilePath);
+        UIRetrieverEngine.SaveMarks(marks, MarksFilePath);
         return $"Deleted '{name}'.";
     }
 }
