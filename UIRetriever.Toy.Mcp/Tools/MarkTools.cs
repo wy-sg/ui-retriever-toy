@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using ModelContextProtocol.Server;
 using UIRetriever.Core.Marks;
 using UIRetriever.Core.Models;
@@ -10,18 +11,26 @@ namespace UIRetriever.Toy.Mcp.Tools;
 [McpServerToolType]
 public sealed class MarkTools
 {
+    [DllImport("user32.dll")]
+    private static extern bool SetCursorPos(int x, int y);
     private static readonly string MarksFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "UIRetriever", "marks.json");
 
     [McpServerTool(Name = "mark_element")]
-    [Description("Pick the UI element under the mouse cursor after a short delay, auto-tune the mark chain, and save it with the given name to the marks store.")]
+    [Description("Pick the UI element under the mouse cursor (or at the given screen coordinate) after a short delay, auto-tune the mark chain, and save it with the given name to the marks store. " +
+                 "When x and y are provided the cursor is moved to that position first and the delay is skipped.")]
     public static async Task<string> MarkElement(
         [Description("Unique name for the new mark")] string name,
-        [Description("Delay in milliseconds before picking (default 1500)")] int delay = 1500)
+        [Description("Delay in milliseconds before picking (default 1500). Ignored when x/y are provided.")] int delay = 1500,
+        [Description("Screen X coordinate to move the cursor to before picking. Must be used together with y.")] int? x = null,
+        [Description("Screen Y coordinate to move the cursor to before picking. Must be used together with y.")] int? y = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return "Error: name is required.";
+
+        if (x.HasValue != y.HasValue)
+            return "Error: both x and y must be provided together.";
 
         var fileService = new MarkFileService();
         var marks = fileService.Load(MarksFilePath);
@@ -29,7 +38,14 @@ public sealed class MarkTools
         if (marks.Any(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase)))
             return $"Error: a mark named '{name}' already exists.";
 
-        await Task.Delay(delay);
+        if (x.HasValue && y.HasValue)
+        {
+            SetCursorPos(x.Value, y.Value);
+        }
+        else
+        {
+            await Task.Delay(delay);
+        }
 
         var picker = new MarkPickerService();
         var pickResult = picker.PickUnderCursor();
