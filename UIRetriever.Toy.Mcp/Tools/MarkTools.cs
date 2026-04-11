@@ -11,9 +11,20 @@ public sealed class MarkTools
 {
     [DllImport("user32.dll")]
     private static extern bool SetCursorPos(int x, int y);
-    private static readonly string MarksFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "UIRetriever", "marks.json");
+    private static readonly string MarksFilePath = InitMarksFilePath();
+
+    private static string InitMarksFilePath()
+    {
+        var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "UIRetriever", "marks.json");
+        var dir = Path.GetDirectoryName(path)!;
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+        if (!File.Exists(path))
+            File.WriteAllText(path, "[]");
+        return path;
+    }
 
     [McpServerTool(Name = "mark_element")]
     [Description("Pick the UI element under the mouse cursor (or at the given screen coordinate) after a short delay, auto-tune the mark chain, and save it with the given name to the marks store. " +
