@@ -11,11 +11,16 @@ namespace UIRetriever.Toy.Mcp.Tools;
 [McpServerToolType]
 public sealed class ScreenshotTools
 {
+    private static readonly string ScreenshotFolder = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "UIRetriever", "Screenshots");
+
     [McpServerTool(Name = "screenshot")]
     [Description("Take a screenshot of the entire primary screen at native resolution and return it as a PNG image. " +
                  "The image is NOT resized so that pixel coordinates match actual screen coordinates for UI automation.")]
     public static IList<ContentBlock> TakeScreenshot(
-        [Description("Optional absolute path to a known-good PNG file to return instead of capturing the screen.")] string? pngFilePath = null)
+        [Description("Optional absolute path to a known-good PNG file to return instead of capturing the screen.")] string? pngFilePath = null,
+        [Description("When true, save the PNG to the AppData screenshots folder and include the file path in the response.")] bool saveToFile = false)
     {
         byte[] bytes;
         if (!string.IsNullOrWhiteSpace(pngFilePath))
@@ -35,7 +40,7 @@ public sealed class ScreenshotTools
             bytes = CaptureScreenshotBytes();
         }
 
-        return [ImageContentBlock.FromBytes(bytes, "image/png")];
+        return BuildResponse(bytes, saveToFile, "screenshot");
     }
 
     [McpServerTool(Name = "grided_screenshot")]
@@ -43,7 +48,8 @@ public sealed class ScreenshotTools
                  "Returns the result as a PNG image. Grid cells can be referenced by column (0-15) and row (0-8) " +
                  "for approximate coordinate estimation.")]
     public static IList<ContentBlock> TakeGridedScreenshot(
-        [Description("Optional absolute path to a known-good PNG file to use as the base image instead of capturing the screen.")] string? pngFilePath = null)
+        [Description("Optional absolute path to a known-good PNG file to use as the base image instead of capturing the screen.")] string? pngFilePath = null,
+        [Description("When true, save the PNG to the AppData screenshots folder and include the file path in the response.")] bool saveToFile = false)
     {
         byte[] baseBytes;
         if (!string.IsNullOrWhiteSpace(pngFilePath) && File.Exists(pngFilePath))
@@ -58,7 +64,29 @@ public sealed class ScreenshotTools
         }
 
         byte[] gridBytes = OverlayGrid(baseBytes, columns: 16, rows: 9);
-        return [ImageContentBlock.FromBytes(gridBytes, "image/png")];
+        return BuildResponse(gridBytes, saveToFile, "grided_screenshot");
+    }
+
+    private static IList<ContentBlock> BuildResponse(byte[] pngBytes, bool saveToFile, string prefix)
+    {
+        var blocks = new List<ContentBlock> { ImageContentBlock.FromBytes(pngBytes, "image/png") };
+
+        if (saveToFile)
+        {
+            string savedPath = SaveToAppData(pngBytes, prefix);
+            blocks.Add(new TextContentBlock { Text = $"Saved to: {savedPath}" });
+        }
+
+        return blocks;
+    }
+
+    private static string SaveToAppData(byte[] pngBytes, string prefix)
+    {
+        Directory.CreateDirectory(ScreenshotFolder);
+        string fileName = $"{prefix}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.png";
+        string fullPath = Path.Combine(ScreenshotFolder, fileName);
+        File.WriteAllBytes(fullPath, pngBytes);
+        return fullPath;
     }
 
     private static byte[] CaptureScreenshotBytes()
