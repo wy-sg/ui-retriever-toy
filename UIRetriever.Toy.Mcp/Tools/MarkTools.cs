@@ -28,6 +28,7 @@ public sealed class MarkTools
 
     [McpServerTool(Name = "mark_element")]
     [Description("Pick the UI element under the mouse cursor (or at the given screen coordinate) after a short delay, auto-tune the mark chain, and save it with the given name to the marks store. " +
+                 "If the coordinate is not given, defaultly use the current cursor position. " +
                  "When x and y are provided the cursor is moved to that position first and the delay is skipped.")]
     public static async Task<string> MarkElement(
         [Description("Unique name for the new mark")] string name,
