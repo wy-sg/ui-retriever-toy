@@ -44,7 +44,8 @@ public sealed class ScreenshotTools
     }
 
     [McpServerTool(Name = "grided_screenshot")]
-    [Description("Take a screenshot of the entire primary screen and overlay a 16×9 grid of 1-pixel black lines. " +
+    [Description("Take a screenshot of the entire primary screen and overlay a 16×9 grid of 2-pixel-thick lines " +
+                 "whose color is the negative (inverted) of the underlying background, ensuring visibility on any content. " +
                  "Returns the result as a PNG image. Grid cells can be referenced by column (0-15) and row (0-8) " +
                  "for approximate coordinate estimation.")]
     public static IList<ContentBlock> TakeGridedScreenshot(
@@ -105,32 +106,81 @@ public sealed class ScreenshotTools
 
     private static byte[] OverlayGrid(byte[] pngBytes, int columns, int rows)
     {
+        const int thickness = 2;
+
         using var inputStream = new MemoryStream(pngBytes);
         using var bitmap = new Bitmap(inputStream);
 
-        using (var g = Graphics.FromImage(bitmap))
-        using (var pen = new Pen(Color.Black, 1))
+        int w = bitmap.Width;
+        int h = bitmap.Height;
+
+        // Collect grid-line pixel coordinates
+        var verticalXs = new HashSet<int>();
+        for (int col = 1; col < columns; col++)
         {
-            int w = bitmap.Width;
-            int h = bitmap.Height;
-
-            // Vertical lines (columns - 1 internal lines)
-            for (int col = 1; col < columns; col++)
+            int cx = (int)Math.Round((double)col * w / columns);
+            for (int t = 0; t < thickness; t++)
             {
-                int x = (int)Math.Round((double)col * w / columns);
-                g.DrawLine(pen, x, 0, x, h - 1);
+                int x = cx - thickness / 2 + t;
+                if (x >= 0 && x < w) verticalXs.Add(x);
             }
+        }
 
-            // Horizontal lines (rows - 1 internal lines)
-            for (int row = 1; row < rows; row++)
+        var horizontalYs = new HashSet<int>();
+        for (int row = 1; row < rows; row++)
+        {
+            int cy = (int)Math.Round((double)row * h / rows);
+            for (int t = 0; t < thickness; t++)
             {
-                int y = (int)Math.Round((double)row * h / rows);
-                g.DrawLine(pen, 0, y, w - 1, y);
+                int y = cy - thickness / 2 + t;
+                if (y >= 0 && y < h) horizontalYs.Add(y);
             }
+        }
+
+        // Invert pixels on grid lines using direct pixel access
+        var rect = new Rectangle(0, 0, w, h);
+        var data = bitmap.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        try
+        {
+            unsafe
+            {
+                byte* scan0 = (byte*)data.Scan0;
+                int stride = data.Stride;
+
+                // Horizontal lines (full width)
+                foreach (int y in horizontalYs)
+                {
+                    byte* rowPtr = scan0 + y * stride;
+                    for (int x = 0; x < w; x++)
+                        InvertPixel(rowPtr + x * 4);
+                }
+
+                // Vertical lines (skip already-inverted intersections)
+                foreach (int x in verticalXs)
+                {
+                    for (int y = 0; y < h; y++)
+                    {
+                        if (horizontalYs.Contains(y)) continue;
+                        InvertPixel(scan0 + y * stride + x * 4);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            bitmap.UnlockBits(data);
         }
 
         using var ms = new MemoryStream();
         bitmap.Save(ms, ImageFormat.Png);
         return ms.ToArray();
+    }
+
+    private static unsafe void InvertPixel(byte* pixel)
+    {
+        pixel[0] = (byte)(255 - pixel[0]); // B
+        pixel[1] = (byte)(255 - pixel[1]); // G
+        pixel[2] = (byte)(255 - pixel[2]); // R
+        // pixel[3] (A) is left unchanged
     }
 }
