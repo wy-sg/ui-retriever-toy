@@ -19,4 +19,5 @@ public static class ToolNames
 
     // Utility tools
     public const string Screenshot = "screenshot";
+    public const string GridedScreenshot = "grided_screenshot";
 }
