@@ -27,14 +27,15 @@ public sealed class MarkTools
     }
 
     [McpServerTool(Name = "mark_element")]
-    [Description("Pick the UI element under the mouse cursor (or at the given screen coordinate) after a short delay, auto-tune the mark chain, and save it with the given name to the marks store. " +
-                 "If the coordinate is not given, defaultly use the current cursor position. " +
-                 "When x and y are provided the cursor is moved to that position first and the delay is skipped.")]
+    [Description("Mark a UI element and save it by name. " +
+                 "Call with ONLY the name parameter to pick the element currently under the user's mouse cursor — this is the default and most common usage. " +
+                 "Do NOT ask the user for coordinates or a screenshot; just call this tool with the name. " +
+                 "Optionally, x and y can be provided to move the cursor to a specific screen coordinate before picking (the delay is then skipped).")]
     public static async Task<string> MarkElement(
-        [Description("Unique name for the new mark")] string name,
+        [Description("Unique name for the new mark. This is the only required parameter.")] string name,
         [Description("Delay in milliseconds before picking (default 1500). Ignored when x/y are provided.")] int delay = 1500,
-        [Description("Screen X coordinate to move the cursor to before picking. Must be used together with y.")] int? x = null,
-        [Description("Screen Y coordinate to move the cursor to before picking. Must be used together with y.")] int? y = null)
+        [Description("Optional screen X coordinate to move the cursor to before picking. Must be used together with y.")] int? x = null,
+        [Description("Optional screen Y coordinate to move the cursor to before picking. Must be used together with x.")] int? y = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             return "Error: name is required.";
