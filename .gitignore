@@ -28,6 +28,12 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+
+# UIRetriever Bridge library (compiled from private repo)
+# Un-obfuscated DLLs must NEVER be committed.
+# Only commit after: .\publish-bridge.ps1 -Merge -Obfuscate
+# To track the obfuscated DLL, run: git add -f lib/UIRetriever.Bridge.dll
+lib/*.dll
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
@@ -361,3 +367,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/lib/README.md
