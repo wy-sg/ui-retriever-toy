@@ -10,7 +10,7 @@
 | `UIRetriever.Contracts` | Public DTOs and contract surface — tool names, bark request/response types, result and error models. |
 | `UIRetriever.Schema` | Marks-file schema models — schema version, serialization, and validation placeholders. |
 | `UIRetriever.Toy.Core` | Toy-safe minimal execution layer — service interfaces and placeholder implementations. |
-| `UIRetriever.Toy.Mcp` | MCP server host — registers bark tools, maps requests to Toy.Core services. Streamable HTTP on port 8000. |
+| `UIRetriever.Toy.Mcp` | MCP server host — registers bark tools, maps requests to Toy.Core services. Supports Streamable HTTP on port 8000 and stdio transport. |
 
 ## Vocabulary
 
@@ -48,10 +48,33 @@ cd UIRetriever.Toy
 
 # Build
 dotnet build
+```
 
-# Run the MCP server
+### How to use over HTTP
+
+For HTTP, run the MCP server:
+
+```bash
 dotnet run --project UIRetriever.Toy.Mcp
 ```
 
 The server starts on `http://localhost:8000` using MCP Streamable HTTP transport.
+
+### How to use over stdio
+
+For `stdio`, do not run a long-lived server yourself. Build the project, then add it to your `mcp.json` and pass the `--stdio` flag.
+
+Example:
+
+```json
+{
+  "mcpServers": {
+    "uiretriever-toy": {
+      "command": "dotnet",
+      "args": ["run", "--project", "UIRetriever.Toy.Mcp", "--", "--stdio"],
+      "cwd": "C:\\Users\\wysg\\source\\repos\\ui-retriever-toy"
+    }
+  }
+}
+```
 
