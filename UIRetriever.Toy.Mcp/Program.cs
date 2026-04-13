@@ -15,24 +15,45 @@
 // Utility tools:
 //   screenshot      — capture the entire screen and return as PNG image
 //
-// Transport: MCP Streamable HTTP on port 8000
+// Transport: Streamable HTTP on port 8000 (default) or stdio (--stdio flag)
 
+using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
 using UIRetriever.Toy.Mcp.Tools;
 
-var builder = WebApplication.CreateBuilder(args);
+var useStdio = args.Contains("--stdio", StringComparer.OrdinalIgnoreCase);
 
-builder.WebHost.UseUrls("http://localhost:8000");
+if (useStdio)
+{
+    var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services
-    .AddMcpServer()
-    .WithHttpTransport()
-    .WithTools<MarkTools>()
-    .WithTools<BarkTools>()
-    .WithTools<ScreenshotTools>();
+    builder.Services
+        .AddMcpServer()
+        .WithStdioServerTransport()
+        .WithTools<MarkTools>()
+        .WithTools<BarkTools>()
+        .WithTools<ScreenshotTools>();
 
-var app = builder.Build();
+    var app = builder.Build();
 
-app.MapMcp();
+    await app.RunAsync();
+}
+else
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-app.Run();
+    builder.WebHost.UseUrls("http://localhost:8000");
+
+    builder.Services
+        .AddMcpServer()
+        .WithHttpTransport()
+        .WithTools<MarkTools>()
+        .WithTools<BarkTools>()
+        .WithTools<ScreenshotTools>();
+
+    var app = builder.Build();
+
+    app.MapMcp();
+
+    app.Run();
+}
