@@ -19,9 +19,13 @@
 
 using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
+using UIRetriever.Bridge;
 using UIRetriever.Toy.Mcp.Tools;
 
 var useStdio = args.Contains("--stdio", StringComparer.OrdinalIgnoreCase);
+
+UIRetrieverEngine.EnsureWarmClient();
+AppDomain.CurrentDomain.ProcessExit += (_, _) => UIRetrieverEngine.DisposeWarmClient();
 
 if (useStdio)
 {
