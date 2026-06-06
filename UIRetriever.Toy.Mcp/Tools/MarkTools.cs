@@ -93,6 +93,7 @@ public sealed class MarkTools
 
         marks.Add(mark);
         UIRetrieverEngine.SaveMarks(marks, MarksFilePath);
+        ElementHighlighter.Show(info.Bounds);
 
         var excluded = tuneResult.Steps.Where(s => !s.Success).ToList();
         var summary = $"Marked '{name}' — {mark.Chain.Count} nodes, "
