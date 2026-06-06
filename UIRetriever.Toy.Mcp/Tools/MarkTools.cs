@@ -66,7 +66,7 @@ public sealed class MarkTools
         mark.Name = name;
         mark.ProcessHint = pickResult.ProcessName ?? string.Empty;
 
-        var tuneResult = UIRetrieverEngine.TuneMark(mark);
+        var tuneResult = UIRetrieverEngine.TuneMark(mark, pickResult.CursorX, pickResult.CursorY);
 
         if (!tuneResult.Success)
         {
